@@ -1,0 +1,20 @@
+import { defineEvent } from "../../types/index.js";
+import { logger } from "../../utils/logger.js";
+
+export default defineEvent({
+	name: "clientReady",
+	once: true,
+	async execute(client) {
+		if (!client.user) return;
+		logger.success("Bot", `Logged in as ${client.user.tag}`);
+
+		const isPrimaryProcess = !client.cluster || client.cluster.id === 0;
+		if (!isPrimaryProcess) return;
+
+		try {
+			await client.commands.registerSlashCommands();
+		} catch (error) {
+			logger.error("Bot", "Failed to register slash commands", error as Error);
+		}
+	},
+});

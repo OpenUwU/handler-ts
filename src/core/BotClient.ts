@@ -1,3 +1,9 @@
+/**
+ * Credits: The OpenUwU Project
+ * Author:  @bre4d777 and @mooncarli
+ * github.com/openUwU/
+ */
+
 import { Client, GatewayIntentBits } from "discord.js";
 import { ClusterClient, getInfo } from "discord-hybrid-sharding";
 import { config } from "../config/config.js";

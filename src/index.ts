@@ -1,3 +1,9 @@
+/**
+ * Credits: The OpenUwU Project
+ * Author:  @bre4d777 and @mooncarli
+ * github.com/openUwU/
+ */
+
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ClusterManager, HeartbeatManager } from "discord-hybrid-sharding";

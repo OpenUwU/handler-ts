@@ -1,3 +1,9 @@
+/**
+ * Credits: The OpenUwU Project
+ * Author:  @bre4d777 and @mooncarli
+ * github.com/openUwU/
+ */
+
 import { appendFileSync, existsSync, mkdirSync, readdirSync, unlinkSync } from "node:fs";
 import path from "node:path";
 import { config } from "../config/config.js";

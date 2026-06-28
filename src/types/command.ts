@@ -1,3 +1,9 @@
+/**
+ * Credits: The OpenUwU Project
+ * Author:  @bre4d777 and @mooncarli
+ * github.com/openUwU/
+ */
+
 import type { APIApplicationCommandBasicOption } from "discord-api-types/v10";
 import type { AutocompleteInteraction, PermissionsBitField } from "discord.js";
 import type { BotClient } from "../core/BotClient.js";

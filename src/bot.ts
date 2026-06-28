@@ -1,3 +1,9 @@
+/**
+ * Credits: The OpenUwU Project
+ * Author:  @bre4d777 and @mooncarli
+ * github.com/openUwU/
+ */
+
 import { BotClient } from "./core/BotClient.js";
 import { logger } from "./utils/logger.js";
 

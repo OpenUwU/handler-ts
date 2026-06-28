@@ -1,3 +1,9 @@
+/**
+ * Credits: The OpenUwU Project
+ * Author:  @bre4d777 and @mooncarli
+ * github.com/openUwU/
+ */
+
 import { Middleware } from "../../middlewares/index.js";
 import { defineCommand } from "../../types/index.js";
 

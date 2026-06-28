@@ -1,3 +1,9 @@
+/**
+ * Credits: The OpenUwU Project
+ * Author:  @bre4d777 and @mooncarli
+ * github.com/openUwU/
+ */
+
 import { config } from "../../config/config.js";
 import { PrefixCommandContext } from "../../structures/context/index.js";
 import { defineEvent } from "../../types/index.js";

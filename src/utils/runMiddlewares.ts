@@ -1,3 +1,9 @@
+/**
+ * Credits: The OpenUwU Project
+ * Author:  @bre4d777 and @mooncarli
+ * github.com/openUwU/
+ */
+
 import type { CommandContext } from "../structures/context/index.js";
 import type { Command } from "../types/command.js";
 import { ok, type MiddlewareResult } from "../types/middleware.js";

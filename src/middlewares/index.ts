@@ -1,3 +1,9 @@
+/**
+ * Credits: The OpenUwU Project
+ * Author:  @bre4d777 and @mooncarli
+ * github.com/openUwU/
+ */
+
 import { botPermissions } from "./botPermissions.js";
 import { cooldown } from "./cooldown.js";
 import { guildOnly } from "./guildOnly.js";

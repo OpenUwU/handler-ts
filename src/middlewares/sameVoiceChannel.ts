@@ -1,15 +1,15 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
-import { fail, ok } from "../types/index.js";
 import type { MiddlewareFn } from "../types/index.js";
+import { fail, ok, withLabel } from "../types/index.js";
 import { isSameVoiceChannel } from "../utils/permissions.js";
 
 export function sameVoiceChannel(): MiddlewareFn {
-	return (ctx) => {
+	return withLabel("Same Voice Channel", (ctx) => {
 		if (!isSameVoiceChannel(ctx.member, ctx.guild)) {
 			return fail(
 				"Same Voice Channel Required",
@@ -17,5 +17,5 @@ export function sameVoiceChannel(): MiddlewareFn {
 			);
 		}
 		return ok();
-	};
+	});
 }

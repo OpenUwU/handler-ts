@@ -1,13 +1,13 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
 import { BotClient } from "./core/BotClient.js";
 import { logger } from "./utils/logger.js";
 
-const client = new BotClient();
+export const client = new BotClient();
 
 process.on("unhandledRejection", (reason) => {
 	logger.error(
@@ -21,15 +21,12 @@ process.on("uncaughtException", (error) => {
 	logger.error("Process", "Uncaught Exception", error);
 });
 
-async function shutdown(signal: string): Promise<void> {
-	logger.warn("Process", `Received ${signal}, shutting down`);
-	await client.shutdown();
+async function gracefulExit(signal: string): Promise<void> {
+	logger.warn("Process", `Received ${signal}, restarting gracefully`);
 	process.exit(0);
 }
-
-process.on("SIGINT", () => void shutdown("SIGINT"));
-process.on("SIGTERM", () => void shutdown("SIGTERM"));
-
+process.on("SIGINT", () => void gracefulExit("SIGINT"));
+process.on("SIGTERM", () => void gracefulExit("SIGTERM"));
 client.start().catch((error: unknown) => {
 	logger.error("Bot", "Failed to start", error as Error);
 	process.exit(1);

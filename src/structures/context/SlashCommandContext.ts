@@ -1,6 +1,6 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
@@ -14,9 +14,9 @@ import type {
 } from "discord.js";
 import type { BotClient } from "../../core/BotClient.js";
 import { BaseCommandContext } from "./BaseCommandContext.js";
+import type { PrefixCommandContext } from "./PrefixCommandContext.js";
 import { toInteractionEditReplyOptions, toInteractionReplyOptions } from "./payload.js";
 import type { ContextReplyOptions } from "./types.js";
-import type { PrefixCommandContext } from "./PrefixCommandContext.js";
 
 export class SlashCommandContext extends BaseCommandContext {
 	public readonly interaction: ChatInputCommandInteraction<"cached">;
@@ -45,7 +45,6 @@ export class SlashCommandContext extends BaseCommandContext {
 	get options() {
 		return this.interaction.options;
 	}
-
 	get deferred(): boolean {
 		return this.interaction.deferred;
 	}

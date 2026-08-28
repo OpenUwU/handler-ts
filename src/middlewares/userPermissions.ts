@@ -1,15 +1,17 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
-import { fail, ok } from "../types/index.js";
 import type { MiddlewareFn } from "../types/index.js";
+import { fail, ok, withLabel } from "../types/index.js";
 import { permissionName } from "../utils/permissions.js";
 
 export function userPermissions(...permissions: bigint[]): MiddlewareFn {
-	return (ctx) => {
+	const label = `Requires: ${permissions.map(permissionName).join(", ")}`;
+
+	return withLabel(label, (ctx) => {
 		const missing = permissions.filter((permission) => !ctx.member.permissions.has(permission));
 
 		if (missing.length) {
@@ -20,5 +22,5 @@ export function userPermissions(...permissions: bigint[]): MiddlewareFn {
 		}
 
 		return ok();
-	};
+	});
 }

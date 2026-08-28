@@ -1,16 +1,16 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
-import { MessageFlags } from "discord.js";
 import type {
 	InteractionEditReplyOptions,
 	InteractionReplyOptions,
 	MessageCreateOptions,
 	MessageEditOptions,
 } from "discord.js";
+import { MessageFlags } from "discord.js";
 import type { ContextReplyOptions } from "./types.js";
 
 function buildFlags(options: ContextReplyOptions): number | undefined {

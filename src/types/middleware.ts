@@ -1,11 +1,11 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
-import type { Command } from "./command.js";
 import type { CommandContext } from "../structures/context/index.js";
+import type { Command } from "./command.js";
 
 export interface MiddlewareError {
 	title: string;
@@ -14,17 +14,30 @@ export interface MiddlewareError {
 
 export type MiddlewareResult =
 	| { ok: true }
-	| { ok: false; error: MiddlewareError; ephemeral?: boolean };
+	| { ok: false; error: MiddlewareError; silent?: boolean };
 
-export type MiddlewareFn = (
+export type MiddlewareCheck = (
 	ctx: CommandContext,
 	command: Command,
 ) => MiddlewareResult | Promise<MiddlewareResult>;
+
+export type MiddlewareFn = MiddlewareCheck & { label?: string };
 
 export function ok(): MiddlewareResult {
 	return { ok: true };
 }
 
-export function fail(title: string, description: string, ephemeral = true): MiddlewareResult {
-	return { ok: false, error: { title, description }, ephemeral };
+export function fail(
+	title: string,
+	description: string,
+	options: { ephemeral?: boolean; silent?: boolean } = {},
+): MiddlewareResult {
+	const { silent = false } = options;
+	return { ok: false, error: { title, description }, silent };
+}
+
+export function withLabel(label: string, check: MiddlewareCheck): MiddlewareFn {
+	const fn = check as MiddlewareFn;
+	fn.label = label;
+	return fn;
 }

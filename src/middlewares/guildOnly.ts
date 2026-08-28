@@ -1,17 +1,17 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
-import { fail, ok } from "../types/index.js";
 import type { MiddlewareFn } from "../types/index.js";
+import { fail, ok, withLabel } from "../types/index.js";
 
 export function guildOnly(): MiddlewareFn {
-	return (ctx) => {
+	return withLabel("Server Only", (ctx) => {
 		if (!ctx.guild) {
 			return fail("Server Only", "This command can only be used inside a server.");
 		}
 		return ok();
-	};
+	});
 }

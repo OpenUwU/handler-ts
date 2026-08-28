@@ -1,47 +1,53 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
-import path from "node:path";
+import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ClusterManager, HeartbeatManager } from "discord-hybrid-sharding";
 import { config } from "./config/config.js";
 import { logger } from "./utils/logger.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-const manager = new ClusterManager(path.join(__dirname, "bot.js"), {
-	totalShards: "auto",
+const isDev = !config.isProduction;
+const manager = new ClusterManager(path.join(__dirname, isDev ? "bot.ts" : "bot.js"), {
+	totalShards: isDev ? 1 : "auto",
+	shardsPerClusters: isDev ? 1 : 2,
 	mode: "process",
-	shardsPerClusters: 2,
 	token: config.token,
 	respawn: true,
+	...(isDev && { execArgv: ["--import", "tsx"] }),
 });
 
 manager.extend(
 	new HeartbeatManager({
-		interval: 2000,
+		interval: 2_000,
 		maxMissedHeartbeats: 5,
 	}),
 );
 
 manager.on("clusterCreate", (cluster) => {
-	logger.info("ClusterManager", `Launched Cluster ${cluster.id} [${cluster.shardList.join(", ")}]`);
-
-	cluster.on("ready", () => logger.success("ClusterManager", `Cluster ${cluster.id} ready`));
-
-	cluster.on("reconnecting", () =>
-		logger.warn("ClusterManager", `Cluster ${cluster.id} reconnecting`),
+	logger.info(
+		"ClusterManager",
+		`Launched Cluster ${cluster.id} [shards: ${cluster.shardList.join(", ")}]`,
 	);
 
-	cluster.on("death", (_childProcess, code) =>
-		logger.error("ClusterManager", `Cluster ${cluster.id} died with exit code ${code}`),
+	cluster.on("ready", () => logger.success("ClusterManager", `Cluster ${cluster.id} ready`)); // ready: cluster is connected and ready
+	cluster.on(
+		"reconnecting",
+		() => logger.warn("ClusterManager", `Cluster ${cluster.id} reconnecting`), // reconnecting: cluster lost connection and is attempting to reconnect
 	);
-
-	cluster.on("error", (error) =>
-		logger.error("ClusterManager", `Cluster ${cluster.id} error`, error),
+	cluster.on(
+		"death",
+		(_, code) => logger.error("ClusterManager", `Cluster ${cluster.id} died (exit ${code})`), // death: cluster process exited; `code` is the exit code
+	);
+	cluster.on(
+		"error",
+		(error) => logger.error("ClusterManager", `Cluster ${cluster.id} error`, error), // error: unhandled error in the cluster
 	);
 });
 

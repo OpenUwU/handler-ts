@@ -6,3 +6,5 @@ node_modules/
 *.log
 logs/
 .bun/
+commands.hash
+docs/

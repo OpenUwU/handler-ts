@@ -1,21 +1,21 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
 import type {
-	EmbedBuilder,
 	ActionRowBuilder,
-	MessageActionRowComponentBuilder,
 	ContainerBuilder,
-	TextDisplayBuilder,
-	SeparatorBuilder,
-	SectionBuilder,
-	MediaGalleryBuilder,
+	EmbedBuilder,
 	FileBuilder,
+	MediaGalleryBuilder,
+	MessageActionRowComponentBuilder,
 	MessageFlagsResolvable,
 	MessageMentionOptions,
+	SectionBuilder,
+	SeparatorBuilder,
+	TextDisplayBuilder,
 } from "discord.js";
 
 type TopLevelComponentBuilder =

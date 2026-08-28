@@ -1,15 +1,15 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
 import {
 	ChannelType,
-	PermissionFlagsBits,
 	type Guild,
 	type GuildMember,
 	type GuildTextBasedChannel,
+	PermissionFlagsBits,
 	type VoiceBasedChannel,
 } from "discord.js";
 
@@ -43,6 +43,23 @@ export function getMissingBotPermissions(
 	return permissions.filter((permission) => !perms.has(permission)).map(permissionName);
 }
 
+/** Shared stage-channel check — used by the permission middleware AND the
+ * real unsuppress action so the two stay in sync. */
+export function isStageChannel(channel: VoiceBasedChannel): boolean {
+	return channel.type === ChannelType.GuildStageVoice;
+}
+
+/** Can the bot become a speaker (now or after joining) in this stage channel? */
+export function canBotBecomeSpeaker(voiceChannel: VoiceBasedChannel): boolean {
+	const me = voiceChannel.guild.members.me;
+	if (!me) return false;
+
+	const perms = voiceChannel.permissionsFor(me);
+	if (!perms) return false;
+
+	return perms.has(PermissionFlagsBits.MuteMembers) || perms.has(PermissionFlagsBits.Administrator);
+}
+
 export function getVoiceChannelMissingPermissions(
 	voiceChannel: VoiceBasedChannel | null | undefined,
 ): string[] {
@@ -50,13 +67,12 @@ export function getVoiceChannelMissingPermissions(
 	if (!voiceChannel || !me) return ["View Channel", "Connect", "Speak"];
 
 	const perms = me.permissionsIn(voiceChannel);
-	const isStage = voiceChannel.type === ChannelType.GuildStageVoice;
 	const missing: string[] = [];
 
 	if (!perms.has(PermissionFlagsBits.ViewChannel)) missing.push("View Channel");
 	if (!perms.has(PermissionFlagsBits.Connect)) missing.push("Connect");
 
-	if (isStage) {
+	if (isStageChannel(voiceChannel)) {
 		if (!perms.has(PermissionFlagsBits.MuteMembers)) missing.push("Mute Members");
 	} else if (!perms.has(PermissionFlagsBits.Speak)) {
 		missing.push("Speak");

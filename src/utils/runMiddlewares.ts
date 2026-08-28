@@ -1,12 +1,12 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
 import type { CommandContext } from "../structures/context/index.js";
 import type { Command } from "../types/command.js";
-import { ok, type MiddlewareResult } from "../types/middleware.js";
+import { type MiddlewareResult, ok } from "../types/middleware.js";
 
 export async function runMiddlewares(
 	ctx: CommandContext,

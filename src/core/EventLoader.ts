@@ -1,6 +1,6 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
@@ -8,16 +8,15 @@ import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import type { ClientEvents } from "discord.js";
-import type { BotClient } from "./BotClient.js";
 import type { DiscordEvent } from "../types/index.js";
 import { logger } from "../utils/logger.js";
+import type { BotClient } from "./BotClient.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export class EventLoader {
 	private readonly client: BotClient;
 	private loadedCount = 0;
-
 	constructor(client: BotClient) {
 		this.client = client;
 	}

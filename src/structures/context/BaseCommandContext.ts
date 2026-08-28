@@ -1,14 +1,14 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
 import type { Guild, GuildMember, GuildTextBasedChannel, Message, User } from "discord.js";
 import type { BotClient } from "../../core/BotClient.js";
-import type { ContextReplyOptions } from "./types.js";
 import type { PrefixCommandContext } from "./PrefixCommandContext.js";
 import type { SlashCommandContext } from "./SlashCommandContext.js";
+import type { ContextReplyOptions } from "./types.js";
 
 export abstract class BaseCommandContext {
 	public readonly client: BotClient;

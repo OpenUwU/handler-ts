@@ -1,20 +1,21 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
-import { readdir } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { REST, Routes } from "discord.js";
 import {
-	ApplicationCommandOptionType,
 	type APIApplicationCommandBasicOption,
 	type APIApplicationCommandOption,
 	type APIApplicationCommandSubcommandGroupOption,
+	ApplicationCommandOptionType,
 	type RESTPostAPIApplicationCommandsJSONBody,
 } from "discord-api-types/v10";
-import { REST, Routes } from "discord.js";
 import { config } from "../config/config.js";
 import type { Command, CommandName } from "../types/index.js";
 import { logger } from "../utils/logger.js";
@@ -193,13 +194,46 @@ export class CommandHandler {
 	}
 
 	async registerSlashCommands(): Promise<void> {
-		const rest = new REST({ version: "10" }).setToken(config.token);
 		const body = Array.from(
 			this.slashCommands.values(),
 		) as RESTPostAPIApplicationCommandsJSONBody[];
 
+		// Compute a deterministic hash of the current command payload
+		// Commands are sorted by name so object insertion order doesn't affect the hash
+		const hashFile = path.join(process.cwd(), "commands.hash");
+		const currentHash = this._hashCommands(body);
+
+		let savedHash: string | null = null;
+		try {
+			savedHash = (await readFile(hashFile, "utf8")).trim();
+		} catch {
+			// file doesn't exist yet — first run
+		}
+
+		if (savedHash === currentHash) {
+			logger.success(
+				"CommandHandler",
+				`Slash commands unchanged (${body.length} commands) — skipping registration`,
+			);
+			return;
+		}
+
+		const rest = new REST({ version: "10" }).setToken(config.token);
 		await rest.put(Routes.applicationCommands(config.clientId), { body });
 		logger.success("CommandHandler", `Registered ${body.length} slash commands`);
+
+		try {
+			await writeFile(hashFile, currentHash, "utf8");
+		} catch (err) {
+			logger.warn("CommandHandler", `Failed to write command hash file: ${(err as Error).message}`);
+		}
+	}
+
+	private _hashCommands(body: RESTPostAPIApplicationCommandsJSONBody[]): string {
+		const sorted = [...body]
+			.sort((a, b) => a.name.localeCompare(b.name))
+			.map((cmd) => JSON.stringify(cmd, Object.keys(cmd).sort()));
+		return createHash("sha256").update(sorted.join("\n")).digest("hex");
 	}
 
 	get(nameOrAlias: string): Command | undefined {

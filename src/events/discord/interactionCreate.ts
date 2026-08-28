@@ -1,33 +1,40 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
-
 import {
-	MessageFlags,
 	type AutocompleteInteraction,
 	type ChatInputCommandInteraction,
+	MessageFlags,
 } from "discord.js";
 import type { BotClient } from "../../core/BotClient.js";
 import { SlashCommandContext } from "../../structures/context/index.js";
 import { defineEvent } from "../../types/index.js";
+import { errorContainer } from "../../utils/components.js";
 import { logger } from "../../utils/logger.js";
 import { canBotSendMessages } from "../../utils/permissions.js";
 import { runMiddlewares } from "../../utils/runMiddlewares.js";
-import { errorContainer } from "../../utils/components.js";
 
 async function handleChatInput(
 	client: BotClient,
 	interaction: ChatInputCommandInteraction,
 ): Promise<void> {
+	await interaction.deferReply().catch(() => {
+		/** empty because errors during deferReply can be safely ignored */
+	});
+
 	if (!interaction.inCachedGuild()) {
 		await interaction
-			.reply({
-				content: "This command can only be used in a server.",
-				flags: MessageFlags.Ephemeral,
+			.followUp({
+				components: [
+					errorContainer("Not in a server", "This command can only be used in a server."),
+				],
+				flags: MessageFlags.IsComponentsV2,
 			})
-			.catch(() => {});
+			.catch(() => {
+				/** empty because errors are intentionally ignored */
+			});
 		return;
 	}
 
@@ -42,21 +49,32 @@ async function handleChatInput(
 	if (!command) {
 		logger.warn("InteractionCreate", `No command file found for /${interaction.commandName}`);
 		await interaction
-			.reply({
-				content: "This command is outdated or improperly configured.",
-				flags: MessageFlags.Ephemeral,
+			.followUp({
+				components: [
+					errorContainer("Command not found", "This command is outdated or improperly configured."),
+				],
+				flags: MessageFlags.IsComponentsV2,
 			})
-			.catch(() => {});
+			.catch(() => {
+				/** empty because errors are intentionally ignored */
+			});
 		return;
 	}
 
 	if (!canBotSendMessages(interaction.channel)) {
 		await interaction
-			.reply({
-				content: "I don't have permission to send messages in this channel.",
-				flags: MessageFlags.Ephemeral,
+			.followUp({
+				components: [
+					errorContainer(
+						"No permission",
+						"I don't have permission to send messages in this channel.",
+					),
+				],
+				flags: MessageFlags.IsComponentsV2,
 			})
-			.catch(() => {});
+			.catch(() => {
+				/** empty because intentionally ignoring errors */
+			});
 		return;
 	}
 
@@ -64,17 +82,23 @@ async function handleChatInput(
 	const result = await runMiddlewares(ctx, command);
 
 	if (!result.ok) {
+		if (result.silent) {
+			await interaction.deleteReply().catch(() => {
+				/** empty because errors are intentionally ignored */
+			});
+			return;
+		}
+
 		const container = errorContainer(result.error.title, result.error.description);
 		await interaction
-			.reply({ components: [container], flags: MessageFlags.IsComponentsV2 })
-			.catch(() => {});
+			.followUp({ components: [container], flags: MessageFlags.IsComponentsV2 })
+			.catch(() => {
+				// empty because intentionally ignoring errors
+			});
 		return;
 	}
 
 	try {
-		if (!command.shouldNotDefer) {
-			await interaction.deferReply();
-		}
 		await command.execute(ctx);
 	} catch (error) {
 		logger.error(
@@ -82,21 +106,15 @@ async function handleChatInput(
 			`Error executing /${interaction.commandName}`,
 			error as Error,
 		);
-
 		const container = errorContainer(
 			"Command Error",
 			"An unexpected error occurred while running this command.",
 		);
-
-		if (interaction.deferred || interaction.replied) {
-			await interaction
-				.followUp({ components: [container], flags: MessageFlags.IsComponentsV2 })
-				.catch(() => {});
-		} else {
-			await interaction
-				.reply({ components: [container], flags: MessageFlags.IsComponentsV2 })
-				.catch(() => {});
-		}
+		await interaction
+			.followUp({ components: [container], flags: MessageFlags.IsComponentsV2 })
+			.catch(() => {
+				// empty because errors are intentionally ignored
+			});
 	}
 }
 
@@ -111,9 +129,7 @@ async function handleAutocomplete(
 		subCommandGroup,
 		subCommand,
 	);
-
 	if (!command?.autocomplete) return;
-
 	try {
 		await command.autocomplete(interaction, client);
 	} catch (error) {

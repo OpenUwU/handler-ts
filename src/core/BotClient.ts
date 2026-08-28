@@ -1,20 +1,32 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
-import { Client, GatewayIntentBits } from "discord.js";
+import type { SessionInfo, WebSocketOptions } from "discord.js";
+import { Client, GatewayIntentBits, Options } from "discord.js";
 import { ClusterClient, getInfo } from "discord-hybrid-sharding";
 import { config } from "../config/config.js";
+import { getPool, getRedis, hydrateAll, teardown } from "../db/index.js";
+import { startWebhookServer } from "../server/server.js";
+import { logger } from "../utils/logger.js";
 import { CommandHandler } from "./CommandHandler.js";
 import { EventLoader } from "./EventLoader.js";
-import { logger } from "../utils/logger.js";
+import { persistGatewaySessionInfo, retrieveGatewaySessionInfo } from "./gatewaySession.js";
 
-function resolveShardOptions(): {
-	shards: number[];
-	shardCount: number;
-} | null {
+interface ResumableWebSocketOptions extends WebSocketOptions {
+	retrieveSessionInfo(shardId: number): Promise<SessionInfo | null>;
+	updateSessionInfo(shardId: number, sessionInfo: SessionInfo | null): void;
+}
+
+const resumableWsOptions: ResumableWebSocketOptions = {
+	retrieveSessionInfo: (shardId) => retrieveGatewaySessionInfo(shardId),
+	updateSessionInfo: (shardId, sessionInfo) => void persistGatewaySessionInfo(shardId, sessionInfo),
+};
+
+/** @internal */
+function resolveShardOptions(): { shards: number[]; shardCount: number } | null {
 	try {
 		const info = getInfo();
 		return { shards: info.SHARD_LIST, shardCount: info.TOTAL_SHARDS };
@@ -36,12 +48,55 @@ export class BotClient extends Client {
 			intents: [
 				GatewayIntentBits.Guilds,
 				GatewayIntentBits.GuildMessages,
-				GatewayIntentBits.MessageContent,
-				GatewayIntentBits.GuildMembers,
 				GatewayIntentBits.GuildVoiceStates,
 			],
 			allowedMentions: { parse: [], repliedUser: false },
 			failIfNotExists: false,
+
+			ws: resumableWsOptions,
+
+			makeCache: Options.cacheWithLimits({
+				...Options.DefaultMakeCacheSettings,
+				MessageManager: 0,
+				ThreadManager: 0,
+				ThreadMemberManager: 0,
+				ReactionManager: 0,
+				ReactionUserManager: 0,
+				PresenceManager: 0,
+				StageInstanceManager: 0,
+				GuildBanManager: 0,
+				GuildInviteManager: 0,
+				ApplicationCommandManager: 0,
+				BaseGuildEmojiManager: 0,
+				GuildStickerManager: 0,
+				AutoModerationRuleManager: 0,
+				GuildScheduledEventManager: 0,
+				UserManager: {
+					maxSize: 10,
+					keepOverLimit: (user) => user.id === user.client.user?.id,
+				},
+				GuildMemberManager: {
+					maxSize: 50,
+					keepOverLimit: (member) =>
+						member.voice?.channelId != null || member.id === member.client.user?.id,
+				},
+				VoiceStateManager: {
+					maxSize: 50,
+					keepOverLimit: (vs) => vs.channelId != null,
+				},
+			}),
+			sweepers: {
+				...Options.DefaultSweeperSettings,
+				users: {
+					interval: 300, // 5 minutes
+					filter: () => (user) => user.id !== user.client.user?.id,
+				},
+				guildMembers: {
+					interval: 300,
+					filter: () => (member) =>
+						member.voice?.channelId == null && member.id !== member.client.user?.id,
+				},
+			},
 		});
 
 		this.cluster = shardOptions ? new ClusterClient(this) : null;
@@ -54,6 +109,16 @@ export class BotClient extends Client {
 	}
 
 	async start(): Promise<void> {
+		getPool();
+		getRedis();
+
+		if ((this.cluster?.id ?? 0) === 0) {
+			await hydrateAll();
+			startWebhookServer();
+		} else {
+			logger.info("Bot", `Cluster ${this.cluster?.id} skipping hydration — Redis already warm`);
+		}
+
 		await this.events.load();
 		await this.commands.load();
 		await this.login(config.token);
@@ -61,6 +126,7 @@ export class BotClient extends Client {
 
 	async shutdown(): Promise<void> {
 		logger.warn("Bot", "Shutting down");
+		await teardown();
 		this.destroy();
 	}
 }

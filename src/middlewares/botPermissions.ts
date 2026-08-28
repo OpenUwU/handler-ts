@@ -1,15 +1,17 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
-import { fail, ok } from "../types/index.js";
 import type { MiddlewareFn } from "../types/index.js";
-import { getMissingBotPermissions } from "../utils/permissions.js";
+import { fail, ok, withLabel } from "../types/index.js";
+import { getMissingBotPermissions, permissionName } from "../utils/permissions.js";
 
 export function botPermissions(...permissions: bigint[]): MiddlewareFn {
-	return (ctx) => {
+	const label = `Bot Needs: ${permissions.map(permissionName).join(", ")}`;
+
+	return withLabel(label, (ctx) => {
 		const missing = getMissingBotPermissions(ctx.channel, permissions);
 
 		if (missing.length) {
@@ -20,5 +22,5 @@ export function botPermissions(...permissions: bigint[]): MiddlewareFn {
 		}
 
 		return ok();
-	};
+	});
 }

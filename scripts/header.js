@@ -4,7 +4,7 @@ import path from "node:path";
 
 const HEADER = `/**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777 
  * github.com/openUwU/
  */
 `;

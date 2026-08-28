@@ -1,15 +1,15 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
-import { fail, ok } from "../types/index.js";
 import type { MiddlewareFn } from "../types/index.js";
+import { fail, ok, withLabel } from "../types/index.js";
 import { getVoiceChannelMissingPermissions } from "../utils/permissions.js";
 
 export function voiceRequired(): MiddlewareFn {
-	return (ctx) => {
+	return withLabel("Voice Channel Required", (ctx) => {
 		const voiceChannel = ctx.member.voice.channel;
 
 		if (!voiceChannel) {
@@ -25,5 +25,5 @@ export function voiceRequired(): MiddlewareFn {
 		}
 
 		return ok();
-	};
+	});
 }

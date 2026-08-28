@@ -1,11 +1,11 @@
 /**
  * Credits: The OpenUwU Project
- * Author:  @bre4d777 and @mooncarli
+ * Author:  @bre4d777
  * github.com/openUwU/
  */
 
-import type { APIApplicationCommandBasicOption } from "discord-api-types/v10";
 import type { AutocompleteInteraction, PermissionsBitField } from "discord.js";
+import type { APIApplicationCommandBasicOption } from "discord-api-types/v10";
 import type { BotClient } from "../core/BotClient.js";
 import type { CommandContext } from "../structures/context/index.js";
 import type { MiddlewareFn } from "./middleware.js";
@@ -24,11 +24,11 @@ export interface Command {
 	aliases?: string[];
 	description?: string;
 	usage?: string;
+	slashUsage?: string;
 	category?: string;
 	examples?: string[];
 	enabledSlash?: boolean;
 	slashData?: SlashCommandData;
-	shouldNotDefer?: boolean;
 	middleware?: MiddlewareFn[];
 	execute: (ctx: CommandContext) => Promise<unknown> | unknown;
 	autocomplete?: (

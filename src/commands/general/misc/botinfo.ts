@@ -10,7 +10,7 @@ import { defineCommand } from "../../../types/index.js";
 import { defContainer, TextDisplay } from "../../../utils/components.js";
 export default defineCommand({
 	name: "botinfo",
-	aliases: ["bi"],
+	aliases: ["bi", "stats"],
 	description: "view bot info",
 	category: "meta",
 	enabledSlash: true,
